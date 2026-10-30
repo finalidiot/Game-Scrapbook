@@ -49,6 +49,7 @@ public sealed class BoardSettings
     public int CaptureHotkeyModifiers { get; set; } = 3;
     public int CaptureHotkeyKey { get; set; } = 0x53;
     public double BoardZoom { get; set; } = 1;
+    public bool SnapToSnips { get; set; } = true;
     // Optional preferences keep existing version-1 boards compatible. Invalid
     // colours are repaired during validation, never treated as lost board data.
     [JsonConverter(typeof(ThemeColorJsonConverter))]

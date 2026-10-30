@@ -7,7 +7,7 @@ The overlay temporarily takes focus; a game may pause while unfocused according 
 
 ## First setup
 
-1. Close the previous Game Scrapbook window. Extract the complete portable package and launch `GameScrapbook.exe`. Confirm **v0.1.7** and a **Snip** button at the top.
+1. Close the previous Game Scrapbook window. Extract the complete portable package and launch `GameScrapbook.exe`. Confirm **v0.1.8** and a **Snip** button at the top.
 2. Put its board window on the second monitor. Leave **Always on top** off for
    the first test. Keep **Return cursor** enabled.
 3. Open an ordinary desktop application on the game monitor. Start here, then
@@ -68,11 +68,34 @@ Games that intentionally receive background mouse/raw input can behave different
    saved window location, and settings. Delete one snip, close, and reopen:
    the deleted snip must stay deleted.
 
+## Snap edges and magnetise
+
+1. Keep at least three differently sized active snips on the board and one in Archive. Leave **Snap edges** checked. Move a saved snip close to another image's left, right, top and bottom edges. Confirm the alignment guides appear near a valid edge and the images meet without an Archive footer or hidden gutter between them.
+2. Move far from the other images. Confirm there is no jump toward an unrelated distant snip. Repeat at 25%, 100% and 300% board zoom and your usual Windows scaling.
+3. Hold **Shift** while moving a saved snip near an edge. Confirm it moves freely. Release Shift during the move and confirm snapping is available again. Turn **Snap edges** off, close/reopen the app and confirm that preference is remembered; turn it back on afterward.
+4. Move one previously joined snip away. Confirm the others remain where they were: snapping does not create a permanent group. Resize a snip and confirm its image proportions remain correct.
+5. Spread snips apart, including one beyond the current scrolled view. Click **Magnetise**. Confirm all active snips move into a compact arrangement at the top-left, preserve their sizes and remain independently editable. Confirm the archived image is unchanged.
+6. Press **Ctrl+Z** once. Confirm every active snip returns to its previous position. Press **Ctrl+Y** once to reapply Magnetise. Restart and check the final arrangement persists.
+7. Select an image and use toolbar **Archive selected**. Confirm it is archived and the remaining images have no footer gap. Restore it from Archive and verify its saved size/position.
+8. Try an empty board and a board with one image. Confirm Magnetise is unavailable when it cannot rearrange multiple snips, and the other board controls remain usable.
+
+## Export a combined image
+
+1. Arrange images edge-to-edge horizontally and vertically, with a separate pair leaving an intentional gap. Include one overlapping pair and select the image you want on top. Keep another image in Archive.
+2. Click **Export image**, save a JPG, and open it in an image viewer. Confirm all active images are present, the outside empty canvas is cropped away, and edge joins do not gain Archive/Delete controls or blank control gutters.
+3. Confirm intentional gaps use the board background colour, overlaps match the board's visible stacking, and archived images are excluded. Selection outlines, the grid, guides, buttons and resize grips must not appear.
+4. Put an active snip beyond the visible scrolled area. Export at different board zoom levels and scroll positions. Confirm the complete non-archived board is included each time, with unchanged image dimensions and placement.
+5. Save a PNG and compare image dimensions and layout with the JPG. Check text at 100% in the viewer; PNG is lossless and JPG uses quality 95. Check that changing board colours changes the solid export background.
+6. Cancel the save dialog. Confirm no image file is created. Export to an existing filename and use the normal overwrite prompt; confirm the resulting file opens completely. Cancel the overwrite and check the existing file stays unchanged.
+7. After an export, move, archive and undo a snip. Confirm the images remain individual editable board items and the export did not change their records.
+8. With an empty active board, confirm **Export image** is unavailable. In a disposable test board only, test a missing active PNG and confirm export reports the problem without saving an incomplete image.
+9. Use a very spread-out or oversized disposable layout and confirm the output guard reports a clear error rather than hanging or replacing an existing file. Limits are 32 million output pixels and 32,767 pixels per edge; the separate 64-million-source-pixel guard may require archiving some images.
+
 ## Top-right delete button check
 
 1. Keep at least two snips on the board. Select one, then click the **×** at the top-right of the other. Confirm the clicked snip is deleted, without a confirmation dialog or a drag starting.
 2. Press **Ctrl+Z** to restore it at the same position and size. Confirm **Ctrl+Y** redoes the deletion.
-3. Check the **×** remains visible on differently sized snips and at your usual board zoom. Confirm normal image dragging and the resize grip still work.
+3. Check the **×** remains centered on ordinary-sized snips and at your usual board zoom. For very small images where it is hidden, select the image and test toolbar **Delete** and the Delete key. Confirm normal image dragging and the resize grip still work.
 4. Delete a snip with **×**, close and reopen the app, and confirm the deletion persisted.
 
 ## Cancel and recover
@@ -105,7 +128,7 @@ compatibility checks, not established support in this first version.
 
 ## Archive check
 
-1. Add two snips at recognisable board positions and sizes. Click **Archive** on one image. Confirm only that image leaves the active board and the Archive count increases.
+1. Add two snips at recognisable board positions and sizes. Select one and click toolbar **Archive selected**. Confirm only that image leaves the active board and the Archive count increases.
 2. Open **Archive**, choose its thumbnail and check that the image can be read in the larger view. Close the window and confirm the active board still contains only the other snip.
 3. Close and reopen the app. Confirm the archived image remains in Archive with its original contents.
 4. Click **Restore to scrapbook** and close Archive. Confirm the image returns at its saved position and size and is removed from the archived list.

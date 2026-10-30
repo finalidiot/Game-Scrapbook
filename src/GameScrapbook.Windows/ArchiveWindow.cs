@@ -195,7 +195,7 @@ internal sealed class ArchiveWindow : Window
         {
             _details.Text = "";
             _placeholder.Text = _entries.Count == 0
-                ? "Your archive is empty.\nUse Archive on a snip to keep it here for later."
+                ? "Your archive is empty.\nSelect a board snip and use Archive selected to keep it here for later."
                 : "Select an archived snip to view it.";
         }
         else

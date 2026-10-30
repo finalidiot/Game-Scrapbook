@@ -30,7 +30,7 @@
             </Canvas>
           </Border>
           <StackPanel>
-            <TextBlock FontSize="22" FontWeight="SemiBold"><Run Text="Game Scrapbook" /><Run Text="  v0.1.7" FontSize="13" Foreground="{DynamicResource MutedBrush}" /></TextBlock>
+            <TextBlock FontSize="22" FontWeight="SemiBold"><Run Text="Game Scrapbook" /><Run Text="  v0.1.8" FontSize="13" Foreground="{DynamicResource MutedBrush}" /></TextBlock>
             <TextBlock Text="Keep your game notes in view." Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0" />
           </StackPanel>
         </StackPanel>
@@ -51,12 +51,20 @@
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
           <Button x:Name="UndoButton" Content="Undo" Click="Undo_Click" Margin="0,0,6,0" ToolTip="Undo · Ctrl+Z" />
           <Button x:Name="DeleteButton" Content="Delete" Click="Delete_Click" Margin="0,0,14,0" ToolTip="Delete selected snip" />
+          <Button x:Name="ArchiveSelectedButton" Content="Archive selected" Click="ArchiveSelected_Click" Margin="0,0,14,0" ToolTip="Keep the selected snip in Archive and clear it from the board" />
           <Button Content="−" Click="ZoomOut_Click" Padding="12,6" ToolTip="Zoom out" />
           <Button x:Name="ZoomButton" Content="100%" Click="ResetZoom_Click" MinWidth="66" Margin="4,0" Padding="6,6" ToolTip="Reset to 100%" />
           <Button Content="+" Click="ZoomIn_Click" Padding="12,6" ToolTip="Zoom in" />
         </StackPanel>
         <Button x:Name="ArchiveButton" Content="Archive (0)" Click="Archive_Click" Margin="14,0,0,8"
                 ToolTip="Browse archived snips and restore them to the scrapbook" />
+        <CheckBox x:Name="SnapEdgesCheckBox" Content="Snap edges" IsChecked="True"
+                  Checked="SnapEdges_Changed" Unchecked="SnapEdges_Changed" Margin="14,0,14,8" VerticalAlignment="Center"
+                  ToolTip="Snap nearby image edges while moving or placing snips. Hold Shift while dragging to move freely." />
+        <Button x:Name="MagnetiseButton" Content="Magnetise" Click="Magnetise_Click" Margin="0,0,8,8"
+                ToolTip="Bring all board snips together into a compact arrangement. Ctrl+Z restores their previous positions." />
+        <Button x:Name="ExportButton" Content="Export image" Click="Export_Click" Margin="0,0,0,8"
+                ToolTip="Save all board snips together as a JPG or PNG, without buttons or controls" />
       </WrapPanel>
       <TextBlock x:Name="ShortcutStatusLabel" Text="Checking capture shortcut…" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" FontSize="14" Margin="0,2,0,0" />
       <Border x:Name="CaptureNotice" Visibility="Collapsed" Background="{DynamicResource NoticeBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="11,8" Margin="0,10,0,0">
@@ -109,7 +117,7 @@
         <TextBlock x:Name="SnipCount" DockPanel.Dock="Right" Text="0 snips" Foreground="{DynamicResource TextBrush}" Margin="16,0,0,0" />
         <StackPanel>
           <TextBlock x:Name="StatusLabel" Text="Ready · Keep this window on your second screen." Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-          <TextBlock Text="Drag to arrange  ·  Corner grip to resize  ·  × or Delete to remove  ·  Ctrl+Z to undo" Foreground="{DynamicResource MutedBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,5,0,0" />
+          <TextBlock Text="Drag to snap  ·  Shift to move freely  ·  Magnetise to bring snips together  ·  Export image to save JPG or PNG" Foreground="{DynamicResource MutedBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,5,0,0" />
         </StackPanel>
       </DockPanel>
     </Border>

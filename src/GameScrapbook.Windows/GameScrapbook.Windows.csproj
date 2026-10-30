@@ -10,7 +10,7 @@
     <RootNamespace>GameScrapbook.Windows</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets/GameScrapbook.ico</ApplicationIcon>
-    <Version>0.1.7</Version>
+    <Version>0.1.8</Version>
     <Description>Snip game information and drag it onto a persistent second-screen scrapbook.</Description>
     <Company>Game Scrapbook</Company>
     <Product>Game Scrapbook</Product>

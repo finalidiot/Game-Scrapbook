@@ -1,5 +1,14 @@
 # Game Scrapbook changes
 
+## 0.1.8 — snap, magnetise and export
+
+- Snap nearby image edges while moving or placing snips, with alignment guides, a remembered **Snap edges** checkbox and **Shift** bypass while moving a saved snip.
+- Add **Magnetise** to bring all active images into a compact arrangement without resizing them or combining their records. Undo/redo treats the operation as one layout change.
+- Add **Export image** for tightly cropped JPG (quality 95) or PNG composition of all non-archived board images, including those outside the current view. Preserve layout and overlap independently of zoom/scroll, with a solid board-colour background and no interface controls.
+- Make card bounds match image bounds so horizontal and vertical joins export without control gutters. Move archiving to toolbar **Archive selected** and retain the Archive browser/restore workflow.
+- Preserve the centered X and keyboard/toolbar deletion; very small snips use selection and toolbar/keyboard controls when their X is hidden.
+- Add focused layout and image-export checks, export size/memory guards and safe replacement of completed image files. Existing boards, archive data and the v0.1.7 capture-focus fix carry over.
+
 ## 0.1.7 — capture input focus
 
 - Public Windows release: the project owner confirmed successful live use in Nivalis Nights, including the camera/aim fix.

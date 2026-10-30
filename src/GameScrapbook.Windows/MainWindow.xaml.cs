@@ -4,22 +4,22 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using GameScrapbook.Core;
 using GameScrapbook.Windows.Capture;
+using Microsoft.Win32;
 
 namespace GameScrapbook.Windows;
 
 public partial class MainWindow : Window
 {
-    private const double CardActionsHeight = 32;
-    private const double MinimumCardWidth = 92;
-    private readonly BoardStore _store = new();
+    private readonly BoardStore _store;
     private readonly BoardHistory _history = new();
     private readonly Dictionary<string, Border> _cards = new();
     private readonly Dictionary<string, Border> _resizeGrips = new();
+    private readonly Dictionary<string, Border> _cardOutlines = new();
+    private readonly Canvas _snapGuideLayer = new() { IsHitTestVisible = false };
     private readonly Dictionary<string, BitmapSource> _images = new();
     private readonly DispatcherTimer _saveTimer;
     private readonly DispatcherTimer _snipCountdown;
@@ -41,11 +41,15 @@ public partial class MainWindow : Window
     private bool _changedDuringDrag;
     private int _countdownRemaining;
 
-    public MainWindow()
+    public MainWindow() : this(new BoardStore()) { }
+
+    internal MainWindow(BoardStore store)
     {
+        _store = store ?? throw new ArgumentNullException(nameof(store));
         InitializeComponent();
         _load = _store.Load();
         _document = _load.Document;
+        SnapEdgesCheckBox.IsChecked = _document.Settings.SnapToSnips;
         ThemeManager.Apply(_document.Settings);
         _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(450) };
         _saveTimer.Tick += (_, _) => { _saveTimer.Stop(); SaveNow(); };
@@ -186,6 +190,10 @@ public partial class MainWindow : Window
         UndoButton.IsEnabled = enabled && _load.CanSave && _history.CanUndo;
         DeleteButton.IsEnabled = enabled && _load.CanSave && _selectedId is not null;
         ArchiveButton.IsEnabled = enabled;
+        ArchiveSelectedButton.IsEnabled = enabled && _load.CanSave && _selectedId is not null;
+        MagnetiseButton.IsEnabled = enabled && _load.CanSave && _document.Snips.Count(s => !s.IsArchived) > 1;
+        ExportButton.IsEnabled = enabled && _document.Snips.Any(s => !s.IsArchived);
+        SnapEdgesCheckBox.IsEnabled = enabled && _load.CanSave;
     }
 
     private CaptureDropTarget? FindDropTarget(Point screenPosition)
@@ -235,6 +243,13 @@ public partial class MainWindow : Window
             PixelWidth = stored.PixelWidth,
             PixelHeight = stored.PixelHeight
         };
+        if (_document.Settings.SnapToSnips && (Keyboard.Modifiers & ModifierKeys.Shift) == 0)
+        {
+            BoardSnapResult placement = BoardSnapping.Snap(SnapBounds(snip),
+                _document.Snips.Select(SnapBounds), 10 / _zoom);
+            snip.X = placement.X;
+            snip.Y = placement.Y;
+        }
         _document.Snips.Add(snip);
         try
         {
@@ -271,12 +286,16 @@ public partial class MainWindow : Window
         BoardCanvas.Children.Clear();
         _cards.Clear();
         _resizeGrips.Clear();
+        _cardOutlines.Clear();
+        _snapGuideLayer.Children.Clear();
         foreach (SnipRecord snip in activeSnips)
         {
             Border card = CreateCard(snip);
             _cards.Add(snip.Id, card);
             BoardCanvas.Children.Add(card);
         }
+        Panel.SetZIndex(_snapGuideLayer, int.MaxValue);
+        BoardCanvas.Children.Add(_snapGuideLayer);
         ResizeCanvas();
         UpdateSelection();
         EmptyState.Visibility = activeSnips.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -290,27 +309,25 @@ public partial class MainWindow : Window
     {
         var card = new Border
         {
-            Width = Math.Max(MinimumCardWidth, snip.Width),
-            Height = snip.Height + CardActionsHeight,
-            BorderThickness = new Thickness(1),
+            Width = snip.Width, Height = snip.Height,
+            BorderThickness = new Thickness(0),
             Cursor = Cursors.SizeAll,
             Tag = snip.Id,
-            Effect = new DropShadowEffect { BlurRadius = 14, ShadowDepth = 4, Opacity = .3, Color = Colors.Black },
-            ToolTip = "Drag to move · × or Delete to remove · Use the corner grip to resize"
+            ToolTip = "Drag to move and snap · Hold Shift to move freely · × or Delete to remove"
         };
-        card.SetResourceReference(Border.BackgroundProperty, "CardBrush");
+        card.SetResourceReference(Border.BackgroundProperty, "BackgroundBrush");
         card.SetResourceReference(Border.BorderBrushProperty, "BorderBrush");
         Canvas.SetLeft(card, snip.X);
         Canvas.SetTop(card, snip.Y);
         var content = new Grid { ClipToBounds = false };
-        content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(CardActionsHeight) });
         var picture = new Grid { ClipToBounds = true };
         content.Children.Add(picture);
         BitmapSource? image = GetImage(snip);
         if (image is not null)
         {
-            var imageControl = new Image { Source = image, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Left, IsHitTestVisible = false };
+            var imageControl = new Image { Source = image, Stretch = Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top,
+                IsHitTestVisible = false };
             RenderOptions.SetBitmapScalingMode(imageControl, BitmapScalingMode.HighQuality);
             picture.Children.Add(imageControl);
         }
@@ -325,9 +342,14 @@ public partial class MainWindow : Window
             missingImage.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
             picture.Children.Add(missingImage);
         }
+        var outline = new Border { BorderThickness = new Thickness(1), IsHitTestVisible = false };
+        outline.SetResourceReference(Border.BorderBrushProperty, "BorderBrush");
+        _cardOutlines[snip.Id] = outline;
+        content.Children.Add(outline);
         var grip = new Border
         {
-            Name = "ResizeGrip", Width = 17, Height = 17,
+            Name = "ResizeGrip", Width = Math.Min(17, Math.Min(snip.Width, snip.Height) * .35),
+            Height = Math.Min(17, Math.Min(snip.Width, snip.Height) * .35),
             HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom,
             CornerRadius = new CornerRadius(3, 0, 0, 0),
             Cursor = Cursors.SizeNWSE, Visibility = Visibility.Collapsed,
@@ -338,28 +360,8 @@ public partial class MainWindow : Window
         grip.MouseLeftButtonDown += (_, e) => BeginCardDrag(card, snip, true, e);
         _resizeGrips[snip.Id] = grip;
 
-        // Keep the action below the image so it does not cover a recipe or quest.
-        var archive = new Button
-        {
-            Content = "Archive", FontSize = 13, Padding = new Thickness(8, 1, 8, 1),
-            MinHeight = 26, Margin = new Thickness(2, 2, 21, 2), HorizontalAlignment = HorizontalAlignment.Right,
-            Cursor = Cursors.Hand, IsEnabled = _load.CanSave,
-            ToolTip = "Keep this snip in Archive and clear it from the board"
-        };
-        System.Windows.Automation.AutomationProperties.SetName(archive, "Archive this snip");
-        archive.Click += (_, e) =>
-        {
-            e.Handled = true;
-            if (SetArchived(snip.Id, true)) BoardCanvas.Focus();
-        };
-        var actions = new Border { Child = archive };
-        actions.SetResourceReference(Border.BackgroundProperty, "PanelBrush");
-        Grid.SetRow(actions, 1);
-        content.Children.Add(actions);
-
-        // Keep the grip at the card's bottom-right, apart from the delete button
-        // even for a very short snip. The archive action leaves this corner free.
-        Grid.SetRowSpan(grip, 2);
+        // Image bounds are the card bounds, so joined snips also join in exports.
+        // Archive selected lives in the toolbar and never covers captured text.
         content.Children.Add(grip);
         var delete = new Button
         {
@@ -367,7 +369,8 @@ public partial class MainWindow : Window
             Padding = new Thickness(0), Margin = new Thickness(3), Cursor = Cursors.Hand,
             HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top,
-            IsEnabled = _load.CanSave, ToolTip = "Delete this snip · Ctrl+Z to undo"
+            IsEnabled = _load.CanSave, ToolTip = "Delete this snip · Ctrl+Z to undo",
+            Visibility = snip.Width >= 36 && snip.Height >= 36 ? Visibility.Visible : Visibility.Collapsed
         };
         delete.SetResourceReference(Button.BackgroundProperty, "ControlBrush");
         delete.SetResourceReference(Button.ForegroundProperty, "TextBrush");
@@ -381,13 +384,27 @@ public partial class MainWindow : Window
         };
         deleteGlyph.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "TextBrush");
         delete.Content = deleteGlyph;
+        if (delete.Visibility == Visibility.Collapsed)
+            card.ToolTip = "Drag to move · Select and use toolbar Delete or Archive selected · Zoom in to resize a small snip";
         System.Windows.Automation.AutomationProperties.SetName(delete, "Delete this snip");
         delete.Click += (_, e) =>
         {
             e.Handled = true;
             DeleteSnip(snip.Id);
         };
-        Grid.SetRowSpan(delete, 2);
+        void UpdateCardControls()
+        {
+            double shortEdge = Math.Min(card.Width, card.Height);
+            grip.Width = grip.Height = Math.Min(17, shortEdge * .35);
+            grip.ClipToBounds = true;
+            ((TextBlock)grip.Child).FontSize = Math.Min(13, grip.Width * .8);
+            delete.Visibility = shortEdge >= 36 ? Visibility.Visible : Visibility.Collapsed;
+            card.ToolTip = delete.Visibility == Visibility.Visible
+                ? "Drag to move and snap · Hold Shift to move freely · × or Delete to remove"
+                : "Drag to move · Select and use toolbar Delete or Archive selected · Zoom in to resize a small snip";
+        }
+        card.SizeChanged += (_, _) => UpdateCardControls();
+        UpdateCardControls();
         Panel.SetZIndex(delete, 1);
         content.Children.Add(delete);
         card.Child = content;
@@ -532,13 +549,23 @@ public partial class MainWindow : Window
             minimumWidth = Math.Min(minimumWidth, maximumWidth);
             _dragSnip.Width = Math.Clamp(_dragOriginal.Width + deltaWidth, minimumWidth, maximumWidth);
             _dragSnip.Height = _dragSnip.Width / aspect;
-            _dragCard.Width = Math.Max(MinimumCardWidth, _dragSnip.Width);
-            _dragCard.Height = _dragSnip.Height + CardActionsHeight;
+            _dragCard.Width = _dragSnip.Width;
+            _dragCard.Height = _dragSnip.Height;
+            _snapGuideLayer.Children.Clear();
         }
         else
         {
             _dragSnip.X = Math.Clamp(_dragOriginal.X + dx, 0, 90000);
             _dragSnip.Y = Math.Clamp(_dragOriginal.Y + dy, 0, 90000);
+            if (_document.Settings.SnapToSnips && (Keyboard.Modifiers & ModifierKeys.Shift) == 0)
+            {
+                BoardSnapResult placement = BoardSnapping.Snap(SnapBounds(_dragSnip),
+                    _document.Snips.Select(SnapBounds), 10 / _zoom);
+                _dragSnip.X = placement.X;
+                _dragSnip.Y = placement.Y;
+                ShowSnapGuides(placement);
+            }
+            else _snapGuideLayer.Children.Clear();
             Canvas.SetLeft(_dragCard, _dragSnip.X);
             Canvas.SetTop(_dragCard, _dragSnip.Y);
         }
@@ -562,7 +589,9 @@ public partial class MainWindow : Window
         Border? card = _dragCard;
         _dragCard = null;
         if (card?.IsMouseCaptured == true) card.ReleaseMouseCapture();
-        if (_changedDuringDrag && _dragBefore is not null)
+        if (_changedDuringDrag && _dragBefore is not null && _dragSnip is not null && _dragOriginal is not null
+            && (_dragSnip.X != _dragOriginal.X || _dragSnip.Y != _dragOriginal.Y
+                || _dragSnip.Width != _dragOriginal.Width || _dragSnip.Height != _dragOriginal.Height))
         {
             _history.Record(_dragBefore);
             MarkDirty();
@@ -572,14 +601,15 @@ public partial class MainWindow : Window
         _dragSnip = null;
         _dragOriginal = null;
         _changedDuringDrag = false;
+        _snapGuideLayer.Children.Clear();
         UpdateSelection();
     }
 
     private void ResizeCanvas()
     {
         SnipRecord[] activeSnips = _document.Snips.Where(s => !s.IsArchived).ToArray();
-        BoardCanvas.Width = Math.Max(2400, activeSnips.Length == 0 ? 0 : activeSnips.Max(s => s.X + Math.Max(MinimumCardWidth, s.Width)) + 400);
-        BoardCanvas.Height = Math.Max(1600, activeSnips.Length == 0 ? 0 : activeSnips.Max(s => s.Y + s.Height + CardActionsHeight) + 400);
+        BoardCanvas.Width = Math.Max(2400, activeSnips.Length == 0 ? 0 : activeSnips.Max(s => s.X + s.Width) + 400);
+        BoardCanvas.Height = Math.Max(1600, activeSnips.Length == 0 ? 0 : activeSnips.Max(s => s.Y + s.Height) + 400);
     }
 
     private void UpdateSelection()
@@ -589,8 +619,11 @@ public partial class MainWindow : Window
         foreach (var (id, card) in _cards)
         {
             bool selected = id == _selectedId;
-            card.SetResourceReference(Border.BorderBrushProperty, selected ? "AccentBrush" : "BorderBrush");
-            card.BorderThickness = new Thickness(selected ? 2 : 1);
+            if (_cardOutlines.TryGetValue(id, out Border? outline))
+            {
+                outline.SetResourceReference(Border.BorderBrushProperty, selected ? "AccentBrush" : "BorderBrush");
+                outline.BorderThickness = new Thickness(selected ? 2 : 1);
+            }
             Panel.SetZIndex(card, selected ? 100000 : index++);
             if (_resizeGrips.TryGetValue(id, out Border? grip))
                 grip.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
@@ -598,6 +631,10 @@ public partial class MainWindow : Window
         UndoButton.IsEnabled = _load.CanSave && _history.CanUndo && _capture?.IsCapturing != true;
         DeleteButton.IsEnabled = _load.CanSave && _selectedId is not null && _capture?.IsCapturing != true;
         ArchiveButton.IsEnabled = _capture?.IsCapturing != true;
+        ArchiveSelectedButton.IsEnabled = _load.CanSave && _selectedId is not null && _capture?.IsCapturing != true;
+        MagnetiseButton.IsEnabled = _load.CanSave && _cards.Count > 1 && _capture?.IsCapturing != true;
+        ExportButton.IsEnabled = _cards.Count > 0 && _capture?.IsCapturing != true;
+        SnapEdgesCheckBox.IsEnabled = _load.CanSave && _capture?.IsCapturing != true;
     }
 
     private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -606,6 +643,127 @@ public partial class MainWindow : Window
         _selectedId = null;
         BoardCanvas.Focus();
         UpdateSelection();
+    }
+
+    private static BoardSnapRect SnapBounds(SnipRecord snip) =>
+        new(snip.Id, snip.X, snip.Y, snip.Width, snip.Height, snip.IsArchived);
+
+    private void ShowSnapGuides(BoardSnapResult placement)
+    {
+        _snapGuideLayer.Children.Clear();
+        if (placement.VerticalGuide is double x) AddGuide(x, 0, x, BoardCanvas.Height);
+        if (placement.HorizontalGuide is double y) AddGuide(0, y, BoardCanvas.Width, y);
+        void AddGuide(double x1, double y1, double x2, double y2)
+        {
+            var guide = new System.Windows.Shapes.Line
+            {
+                X1 = x1, Y1 = y1, X2 = x2, Y2 = y2,
+                StrokeThickness = 1.5 / _zoom, StrokeDashArray = new DoubleCollection { 4, 3 }
+            };
+            guide.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "AccentBrush");
+            _snapGuideLayer.Children.Add(guide);
+        }
+    }
+
+    private void SnapEdges_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing || !_load.CanSave) return;
+        _document.Settings.SnapToSnips = SnapEdgesCheckBox.IsChecked == true;
+        _snapGuideLayer.Children.Clear();
+        MarkDirty();
+        ShowStatus(_document.Settings.SnapToSnips
+            ? "Edge snapping on. Hold Shift while dragging to move freely."
+            : "Edge snapping off. Magnetise can still bring the whole board together.");
+    }
+
+    private void ArchiveSelected_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedId is not null && SetArchived(_selectedId, true)) BoardCanvas.Focus();
+    }
+
+    private void Magnetise_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_load.CanSave || _dialogOpen || _capture?.IsCapturing == true) return;
+        StopSnipCountdown();
+        CaptureNotice.Visibility = Visibility.Collapsed;
+        FinishCardDrag();
+        BoardDocument before = _document.DeepClone();
+        bool wasDirty = _dirty;
+        try
+        {
+            IReadOnlyList<BoardSnapRect> packed = BoardPacking.Magnetise(_document.Snips.Select(SnapBounds));
+            var positions = packed.ToDictionary(rect => rect.Id, StringComparer.Ordinal);
+            bool changed = _document.Snips.Any(s => !s.IsArchived
+                && (s.X != positions[s.Id].X || s.Y != positions[s.Id].Y));
+            if (!changed) { ShowStatus("Your snips are already together."); return; }
+            foreach (SnipRecord snip in _document.Snips.Where(s => !s.IsArchived))
+            {
+                snip.X = positions[snip.Id].X;
+                snip.Y = positions[snip.Id].Y;
+            }
+            _store.Save(_document);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+        {
+            _document = before;
+            _dirty = wasDirty;
+            RenderBoard();
+            ShowCaptureNotice("Could not magnetise the board. " + ex.Message, true);
+            return;
+        }
+        _history.Record(before);
+        _dirty = false;
+        _saveTimer.Stop();
+        _selectedId = null;
+        RenderBoard();
+        BoardScroll.ScrollToHorizontalOffset(0);
+        BoardScroll.ScrollToVerticalOffset(0);
+        ShowStatus("Snips magnetised. Ctrl+Z restores the previous arrangement.");
+    }
+
+    private BitmapSource CreateBoardExport()
+    {
+        BoardDocument snapshot = _document.DeepClone();
+        // Selection raises a card above overlaps on the board. Preserve that
+        // visible stacking in the export without changing the saved document.
+        SnipRecord? selected = snapshot.Snips.FirstOrDefault(s => s.Id == _selectedId && !s.IsArchived);
+        if (selected is not null) { snapshot.Snips.Remove(selected); snapshot.Snips.Add(selected); }
+        var background = (Color)ColorConverter.ConvertFromString(snapshot.Settings.BackgroundColor);
+        return BoardImageExporter.Create(snapshot, GetImage, background);
+    }
+
+    private void Export_Click(object sender, RoutedEventArgs e)
+    {
+        if (_dialogOpen || _capture?.IsCapturing == true || !_document.Snips.Any(s => !s.IsArchived)) return;
+        StopSnipCountdown();
+        CaptureNotice.Visibility = Visibility.Collapsed;
+        FinishCardDrag();
+        _dialogOpen = true;
+        Cursor? previousCursor = Mouse.OverrideCursor;
+        try
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Export scrapbook image", FileName = $"Game-Scrapbook-{DateTime.Now:yyyy-MM-dd}",
+                Filter = "JPG image (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG image (*.png)|*.png",
+                DefaultExt = ".jpg", AddExtension = true, OverwritePrompt = true
+            };
+            if (dialog.ShowDialog(this) != true) return;
+            Mouse.OverrideCursor = Cursors.Wait;
+            BitmapSource image = CreateBoardExport();
+            string extension = Path.GetExtension(dialog.FileName);
+            BoardImageFormat format = extension.Equals(".png", StringComparison.OrdinalIgnoreCase)
+                ? BoardImageFormat.Png : BoardImageFormat.Jpeg;
+            BoardImageExporter.Save(image, dialog.FileName, format);
+            ShowStatus($"Exported {image.PixelWidth} × {image.PixelHeight} image to {Path.GetFileName(dialog.FileName)}.");
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException
+            or InvalidOperationException or NotSupportedException or FormatException
+            or System.Runtime.InteropServices.COMException or OutOfMemoryException)
+        {
+            ShowCaptureNotice("Could not export the board. " + ex.Message, true);
+        }
+        finally { Mouse.OverrideCursor = previousCursor; _dialogOpen = false; }
     }
 
     private void DeleteSelected()
@@ -800,7 +958,9 @@ public partial class MainWindow : Window
                 "Click a saved snip to select it. Drag to move. Use its bottom-right grip to resize. Click its top-right × to delete it, or select it and press Delete. Ctrl+Z restores it; Ctrl+Y redoes. Ctrl+wheel zooms the board.\n\n" +
                 "Escape or right-click cancels a capture. Dropping outside the board lets you try again.\n\n" +
                 "Keep the app running for the shortcut to work. Borderless/windowed games are the first target. Games that lock the cursor or use raw mouse input may need their own cursor/menu setting; fullscreen capture and focus behaviour vary.\n\n" +
-                "Use Archive below a snip to keep it for later. Open Archive from the toolbar to browse saved images and restore them to their previous positions. Ctrl+Z undoes archiving or restoring.\n\n" +
+                "Select a snip and use Archive selected in the toolbar to keep it for later. Open Archive to browse saved images and restore their previous positions. Ctrl+Z undoes archiving or restoring.\n\n" +
+                "Snap edges joins nearby images while moving them. Hold Shift to move freely. Magnetise brings all board snips into a compact arrangement; Ctrl+Z restores the old layout.\n\n" +
+                "Export image saves all board snips together as JPG or PNG, cropped to the images. Buttons, selection outlines and archived snips are left out. Board zoom and scrolling do not change the export.\n\n" +
                 "Open Settings to change the background, text and accent colours. Reset colours restores blue, white and dark grey.\n\n" +
                 "If capture fails, its error appears above the board. Capture startup details are saved to capture-diagnostics.log in the data folder.\n\n" +
                 "Your board saves locally to:\n" + _store.RootDirectory,

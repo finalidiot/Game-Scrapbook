@@ -400,6 +400,29 @@ try
               load.Document.Settings.ThemeDefaultsVersion == 1, "first custom black choice was replaced");
     });
 
+    Run("snap preference defaults on for legacy boards and persists through save and history", () =>
+    {
+        var store = NewStore();
+        var board = NewBoard(store.SaveImage(pixelPng));
+        store.Save(board);
+        JsonNode manifest = JsonNode.Parse(File.ReadAllText(store.ManifestPath))!;
+        manifest["settings"]!.AsObject().Remove("snapToSnips");
+        File.WriteAllText(store.ManifestPath, manifest.ToJsonString());
+        board = store.Load().Document;
+        Check(board.Settings.SnapToSnips && board.Snips.Count == 1, "legacy snap default damaged board");
+        board.Settings.SnapToSnips = false;
+        store.Save(board);
+        board = new BoardStore(store.RootDirectory).Load().Document;
+        Check(!board.Settings.SnapToSnips, "snap preference did not persist");
+        var history = new BoardHistory();
+        history.Record(board);
+        board.Snips.Clear();
+        board = history.Undo(board)!;
+        Check(board.Snips.Count == 1 && !board.Settings.SnapToSnips, "undo changed current snap preference");
+        board = history.Redo(board)!;
+        Check(board.Snips.Count == 0 && !board.Settings.SnapToSnips, "redo changed current snap preference");
+    });
+
     Console.WriteLine($"PASS: {passed} core checks.");
     return 0;
 }
