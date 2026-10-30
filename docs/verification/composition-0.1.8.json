@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "cases": 14,
+  "assertions": 141,
+  "applicationSha256": "fe87cd6fd090bee94f4021bb15ac131a2f0f8005e9344c9da4c0244b5e6abc6d",
+  "method": "Actual compiled MainWindow constructed through its internal BoardStore constructor, with real XAML controls/resources and isolated synthetic images/data. Private action methods and routed handlers invoked offscreen; application resources loaded without Run/OnStartup. Application content measured/rendered at normal and minimum sizes.",
+  "boundary": "No Window.Show, native HWND, SaveFileDialog, physical mouse/keyboard input, user data, game capture or native focus interaction. Rendering and state integration only.",
+  "results": [
+    {
+      "name": "Magnetise is one durable undoable change and leaves archives and PNGs intact",
+      "passed": true
+    },
+    {
+      "name": "Magnetise on an already packed layout does not create an undo entry",
+      "passed": true
+    },
+    {
+      "name": "Magnetise IO failure rolls back positions without losing prior unsaved state",
+      "passed": true
+    },
+    {
+      "name": "Magnetise validation failure is handled without replacing the saved board",
+      "passed": true
+    },
+    {
+      "name": "Archive selected stays available outside images and supports persisted undo",
+      "passed": true
+    },
+    {
+      "name": "Export matches selected overlap order and never mutates the saved board",
+      "passed": true
+    },
+    {
+      "name": "Export destination guard protects managed images and board metadata",
+      "passed": true
+    },
+    {
+      "name": "Card images retain exact footprint with overlays at several zoom levels",
+      "passed": true
+    },
+    {
+      "name": "Tiny cards keep a movable image area and controls adapt after resizing",
+      "passed": true
+    },
+    {
+      "name": "Actual XAML toolbar fits normal and minimum application sizes",
+      "passed": true
+    },
+    {
+      "name": "A new capture can snap its image edge and remains one undoable placement",
+      "passed": true
+    },
+    {
+      "name": "Snap preference persists and older boards default to enabled",
+      "passed": true
+    },
+    {
+      "name": "Readonly boards allow export but prevent arranging or archive edits",
+      "passed": true
+    },
+    {
+      "name": "An archive-only board disables export and magnetise",
+      "passed": true
+    }
+  ]
+}

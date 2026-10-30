@@ -22,9 +22,9 @@ Keep recipes, quests, maps and other game information in view on your second mon
 
 The app has no account, upload, cloud sync or network feature. Your captures stay on your computer.
 
-![Example snip cards with the centered delete X and Archive actions](docs/images/synthetic-demo.png)
+![Game Scrapbook v0.1.8 with Snap edges, Magnetise and Export image](docs/images/composition-0.1.8.png)
 
-*Historical v0.1.6 demonstration with synthetic content, not a live game screenshot. In v0.1.8, **Archive selected** is in the toolbar so image edges can join without a footer between them.*
+*Actual v0.1.8 interface rendered offscreen with synthetic sample content. [See the resulting JPG export](docs/images/export-example-0.1.8.jpg), with the controls left out.*
 
 ## First run
 
@@ -54,6 +54,8 @@ To save a combined image, click **Export image**, choose a filename and select *
 The export contains **all non-archived board snips**, including images outside the scrolled view. It crops away the empty canvas around them, preserves intentional gaps and overlapping images, and keeps a selected overlapping snip on top just as the board shows it. Archive/Delete buttons, resize grips, selection outlines, alignment guides and the dotted canvas are excluded. Exporting leaves the individual snips on your board.
 
 Snip sizes on the board determine the exported image dimensions. Board zoom and scroll position do not change the file. Export limits are 32 million output pixels, 32,767 pixels per edge and 64 million pixels of unique source-image data. If the output is too large, bring snips closer together or resize them; archive some snips if the source-data limit is reached. A missing active image stops the export rather than producing an incomplete file.
+
+Save exports outside the app's saved-board folder. The app protects that folder so an export cannot replace an original snip image or other managed data.
 
 ## Controls and shortcuts
 

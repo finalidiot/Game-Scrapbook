@@ -1,0 +1,92 @@
+{
+  "status": "passed",
+  "passed": 21,
+  "failed": 0,
+  "boundary": "Actual linked BoardImageExporter with WPF offscreen rendering and real JPG/PNG encoding; synthetic in-memory images and isolated fixture files only. No user data or live UI.",
+  "cases": [
+    {
+      "name": "export crops outside empty canvas and contains image pixels only",
+      "passed": true
+    },
+    {
+      "name": "horizontal edge joins export without a control gutter",
+      "passed": true
+    },
+    {
+      "name": "vertical edge joins export without archive buttons or selection chrome",
+      "passed": true
+    },
+    {
+      "name": "intentional gaps retain the opaque board background",
+      "passed": true
+    },
+    {
+      "name": "overlap follows document order rather than selection",
+      "passed": true
+    },
+    {
+      "name": "archives do not affect bounds and their images are never loaded",
+      "passed": true
+    },
+    {
+      "name": "empty and archive-only boards fail before loading images",
+      "passed": true
+    },
+    {
+      "name": "a missing active image fails rather than exporting an incomplete board",
+      "passed": true
+    },
+    {
+      "name": "images retain aspect ratio in a mismatched legacy layout",
+      "passed": true
+    },
+    {
+      "name": "board zoom does not change exported geometry or mutate the document",
+      "passed": true
+    },
+    {
+      "name": "invalid active geometry is rejected without image decoding",
+      "passed": true
+    },
+    {
+      "name": "large dimensions and sparse-board pixel budgets fail before decoding",
+      "passed": true
+    },
+    {
+      "name": "source pixel budget rejects a lazy oversized source before rendering",
+      "passed": true
+    },
+    {
+      "name": "declared source budget is checked before image loading",
+      "passed": true
+    },
+    {
+      "name": "duplicate immutable image files are decoded once and reused",
+      "passed": true
+    },
+    {
+      "name": "PNG encoding round-trips dimensions and exact flat colours",
+      "passed": true
+    },
+    {
+      "name": "JPG encoding round-trips dimensions and readable flat colours",
+      "passed": true
+    },
+    {
+      "name": "successful overwrite replaces the complete image and leaves no temporary file",
+      "passed": true
+    },
+    {
+      "name": "failed replacement preserves a locked destination and removes its temporary file",
+      "passed": true
+    },
+    {
+      "name": "format and extension errors preserve an existing destination",
+      "passed": true
+    },
+    {
+      "name": "a directory collision fails without leaving partial image output",
+      "passed": true
+    }
+  ]
+}
