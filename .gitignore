@@ -1,0 +1,47 @@
+# .NET build and publish output
+**/bin/
+**/obj/
+/artifacts/
+/TestResults/
+*.binlog
+
+# Local IDE state
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+*.snk
+NuGet.Config.local
+
+# Runtime boards, captured images and diagnostic output
+/GameScrapbook/
+board.json
+board.backup.json
+board.corrupt*.json
+board.unreadable*.json
+/images/
+*.log
+
+# Local tooling and release packages
+/.dotnet/
+/.nuget/
+*.zip
+*.exe
+
+# OS/editor temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
+*.tmp
+*.swp

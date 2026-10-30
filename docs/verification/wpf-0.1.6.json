@@ -1,0 +1,317 @@
+{
+  "status": "passed",
+  "checks": 153,
+  "cases": 12,
+  "applicationAssembly": "src/GameScrapbook.Windows/bin/Release/net10.0-windows/win-x64/GameScrapbook.dll",
+  "applicationSha256": "88f9a90505e2b280d09abc87c3908f0c869214bf702fb613d2047df8e8bd1734",
+  "method": "Actual compiled private CreateCard invoked on uninitialized host with synthetic in-memory image cache; release App resources loaded without Run/OnStartup. Actual button Click routed event raised for deletion plus real Undo/Redo methods and isolated BoardStore persistence. No Window.Show, user data access, capture, hotkeys or UI automation.",
+  "boundary": "Offscreen WPF rendering, card structure and programmatic click/undo/redo/persistence only; no physical mouse input, live capture, focus restoration or game compatibility test.",
+  "behavior": {
+    "passed": true,
+    "assertions": 9,
+    "checks": "Actual compiled delete Button.Click handler, clicked-vs-selected identity, persistence, Undo, Redo, immutable PNG retention",
+    "fixture": "isolated-board-c2127e9884e8443896ef16db000406f9"
+  },
+  "results": [
+    {
+      "dpi": 96,
+      "zoom": 0.25,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 12,
+        "MaximumAlphaDifference": 32,
+        "NontransparentPixels": 96,
+        "AlphaCentroidX": 6.0271501876388145,
+        "AlphaCentroidY": 6.0608485869648465
+      }
+    },
+    {
+      "dpi": 96,
+      "zoom": 1,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 12,
+        "MaximumAlphaDifference": 32,
+        "NontransparentPixels": 96,
+        "AlphaCentroidX": 6.0271501876388145,
+        "AlphaCentroidY": 6.0608485869648465
+      }
+    },
+    {
+      "dpi": 96,
+      "zoom": 3,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 12,
+        "MaximumAlphaDifference": 32,
+        "NontransparentPixels": 96,
+        "AlphaCentroidX": 6.0271501876388145,
+        "AlphaCentroidY": 6.0608485869648465
+      }
+    },
+    {
+      "dpi": 120,
+      "zoom": 0.25,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 15,
+        "MaximumAlphaDifference": 32,
+        "NontransparentPixels": 125,
+        "AlphaCentroidX": 7.531792938299281,
+        "AlphaCentroidY": 7.562566872165894
+      }
+    },
+    {
+      "dpi": 120,
+      "zoom": 1,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 15,
+        "MaximumAlphaDifference": 32,
+        "NontransparentPixels": 125,
+        "AlphaCentroidX": 7.531792938299281,
+        "AlphaCentroidY": 7.562566872165894
+      }
+    },
+    {
+      "dpi": 120,
+      "zoom": 3,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 15,
+        "MaximumAlphaDifference": 32,
+        "NontransparentPixels": 125,
+        "AlphaCentroidX": 7.531792938299281,
+        "AlphaCentroidY": 7.562566872165894
+      }
+    },
+    {
+      "dpi": 144,
+      "zoom": 0.25,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 18,
+        "MaximumAlphaDifference": 32,
+        "NontransparentPixels": 156,
+        "AlphaCentroidX": 9.035190217391305,
+        "AlphaCentroidY": 9.061820652173912
+      }
+    },
+    {
+      "dpi": 144,
+      "zoom": 1,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 18,
+        "MaximumAlphaDifference": 32,
+        "NontransparentPixels": 156,
+        "AlphaCentroidX": 9.035190217391305,
+        "AlphaCentroidY": 9.061820652173912
+      }
+    },
+    {
+      "dpi": 144,
+      "zoom": 3,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 18,
+        "MaximumAlphaDifference": 32,
+        "NontransparentPixels": 156,
+        "AlphaCentroidX": 9.035190217391305,
+        "AlphaCentroidY": 9.061820652173912
+      }
+    },
+    {
+      "dpi": 192,
+      "zoom": 0.25,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 24,
+        "MaximumAlphaDifference": 31,
+        "NontransparentPixels": 288,
+        "AlphaCentroidX": 12.028025404598845,
+        "AlphaCentroidY": 12.061694150055477
+      }
+    },
+    {
+      "dpi": 192,
+      "zoom": 1,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 24,
+        "MaximumAlphaDifference": 31,
+        "NontransparentPixels": 288,
+        "AlphaCentroidX": 12.028025404598845,
+        "AlphaCentroidY": 12.061694150055477
+      }
+    },
+    {
+      "dpi": 192,
+      "zoom": 3,
+      "buttonWidth": 24,
+      "buttonHeight": 24,
+      "glyphWidth": 12,
+      "glyphHeight": 12,
+      "inkBounds": {
+        "X": 0.125,
+        "Y": 0.125,
+        "Width": 11.75,
+        "Height": 11.75
+      },
+      "center": {
+        "X": 12,
+        "Y": 12
+      },
+      "raster": {
+        "PixelSize": 24,
+        "MaximumAlphaDifference": 31,
+        "NontransparentPixels": 288,
+        "AlphaCentroidX": 12.028025404598845,
+        "AlphaCentroidY": 12.061694150055477
+      }
+    }
+  ]
+}
