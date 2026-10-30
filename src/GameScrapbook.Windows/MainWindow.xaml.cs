@@ -749,6 +749,7 @@ public partial class MainWindow : Window
                 DefaultExt = ".jpg", AddExtension = true, OverwritePrompt = true
             };
             if (dialog.ShowDialog(this) != true) return;
+            ValidateExportDestination(dialog.FileName);
             Mouse.OverrideCursor = Cursors.Wait;
             BitmapSource image = CreateBoardExport();
             string extension = Path.GetExtension(dialog.FileName);
@@ -764,6 +765,17 @@ public partial class MainWindow : Window
             ShowCaptureNotice("Could not export the board. " + ex.Message, true);
         }
         finally { Mouse.OverrideCursor = previousCursor; _dialogOpen = false; }
+    }
+
+    private void ValidateExportDestination(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        string destination = Path.GetFullPath(path);
+        string root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(_store.RootDirectory));
+        string prefix = Path.EndsInDirectorySeparator(root) ? root : root + Path.DirectorySeparatorChar;
+        if (destination.Equals(root, StringComparison.OrdinalIgnoreCase)
+            || destination.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Choose an export location outside the saved-board folder to protect your original snips.", nameof(path));
     }
 
     private void DeleteSelected()
