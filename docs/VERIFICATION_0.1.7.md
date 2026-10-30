@@ -40,9 +40,13 @@ Compiled application DLL SHA256: `c710b5616ba127a070e2343aabfc12dc1d7d37f513d90f
 
 The package records the final source commit and contains that exact committed source, plus the application license and bundled runtime notices. The executable's .NET informational metadata also contains the v0.1.6 base commit, because this build was made from the reviewed working tree before the release commit. The hashes above identify the tested v0.1.7 binary; the interface and assembly version are 0.1.7.
 
-## Remaining live check
+## Live game validation
 
-**Nivalis Nights has not been live-tested with this build in this session.** The tests establish coordinator ordering and cancellation behavior, not actual Windows foreground permission or a game's input handling. Follow the [Nivalis Nights camera/focus checklist](WINDOWS_PLAYTEST.md) with the new executable.
+**The project owner tested v0.1.7 successfully in a live Nivalis Nights session**, including the camera/aim fix, and reported “Works perfectly.” This result was confirmed on 30 October 2026 and supports the public release.
+
+This owner-performed game test is additional evidence after the automated and native-style checks described above. The game's display mode, HDR state and a complete per-step checklist were not recorded, so no broader display-mode or other-game compatibility is claimed. Use the [Windows playtest checklist](WINDOWS_PLAYTEST.md) when testing another setup.
+
+This follow-up updates the current documentation and public release notes. The original v0.1.7 tag and downloadable archives remain the exact packages already tested; their embedded reports reflect the evidence available when they were packaged.
 
 Temporarily taking focus may pause a game according to that game's settings. Games registered to read background raw input may still react. This change does not inject into the game, synthesize game clicks, install an input hook/driver or block input system-wide. Windowed/borderless SDR remains the intended target.
 

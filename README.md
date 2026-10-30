@@ -2,9 +2,11 @@
 
 Keep recipes, quests, maps and other game information in view on your second monitor. Game Scrapbook is a small, portable Windows utility: capture part of your game screen, drag the cut-out onto a persistent board, then return to playing.
 
-**Windows x64 · Free and open source · MIT license · v0.1.7 preview**
+**Windows x64 · Public release v0.1.7 · Free and open source · MIT license**
 
 [Download the latest Windows release](https://github.com/finalidiot/Game-Scrapbook/releases/latest) · [Report a problem](https://github.com/finalidiot/Game-Scrapbook/issues)
+
+**Tested successfully in Nivalis Nights with v0.1.7**, including the camera/aim fix. Other games and display modes may behave differently. See the [live game validation](docs/VERIFICATION_0.1.7.md#live-game-validation).
 
 ## What it does
 
@@ -89,7 +91,7 @@ Capture diagnostics do not record screen contents or window titles. Before shari
 - Capture uses Windows GDI desktop capture. Exclusive fullscreen, HDR colour accuracy and protected capture surfaces are not verified and may produce incorrect or blank captures.
 - The snipping overlay temporarily takes focus, which can pause a game according to its unfocused-window settings. Games that read mouse input in the background may still react; games that lock the cursor may need their own menu or cursor setting. This is not a global input blocker.
 - Windows may refuse a focus-transfer or focus-return request. Capture stops if the overlay cannot own input; the app reports a failed return instead of repeatedly forcing focus. Losing overlay focus during capture cancels the operation. An intentional Alt+Tab to another app leaves that app active without moving the pointer back.
-- This is an **unsigned preview**. Windows may show an unknown-publisher or reputation notice. First launch can take longer while .NET extracts bundled native files.
+- This is an **unsigned Windows application**. Windows may show an unknown-publisher or reputation notice. First launch can take longer while .NET extracts bundled native files.
 - There is one local board. Undo history is session-only; there is no automatic unused-image cleanup.
 
 If the shortcut seems inactive, try **Snip** and read the message above the board. **Shortcut unavailable** usually means another app has registered it; choose a different combination in Settings. Capture errors and the diagnostics above help distinguish shortcut, screenshot and overlay failures.

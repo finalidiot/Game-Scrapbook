@@ -39,7 +39,7 @@ that the game test passed.
 
 ## Camera and focus regression check (v0.1.7)
 
-Nivalis Nights was reported to turn the camera/aim while carrying a snip in v0.1.6. Repeat these checks in that game, and record the result; this checklist is not a claim that it has already passed.
+The project owner confirmed successful live use of v0.1.7 in Nivalis Nights after the camera/aim fix. Use these steps for detailed regression checks on additional setups; a complete per-step record was not supplied for that session.
 
 1. With **Return mouse after snipping** enabled, aim at a recognisable fixed point. Start a snip with Ctrl+Alt+S. Confirm the screenshot shows the intended scene before the overlay takes focus.
 2. Move the mouse widely while selecting a rectangle, then while carrying the cut-out to the second monitor. Confirm the camera/aim stays at the same point and no game click action occurs. If the game pauses when unfocused, record that behaviour rather than treating it as a capture failure.

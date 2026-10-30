@@ -38,4 +38,4 @@ OCR/search, text notes, multiple game boards, automatic game detection, cloud sy
 
 Record current build, core durability and focused Windows checks in the versioned verification report. Native mouse input, focus behaviour, mixed-DPI cursor interaction and real-game compatibility still require the included Windows playtest. Passing compilation or an offscreen check is never described as passing that playtest.
 
-The v0.1.7 focus change addresses camera/aim movement reported in Nivalis Nights. It does not establish compatibility with games that intentionally read background input or continuously lock the cursor. The utility does not suppress all system input or inject into the game.
+The project owner has confirmed successful live use of v0.1.7 in Nivalis Nights after the camera/aim fix. That validation does not establish compatibility with every game or display mode, including games that intentionally read background input or continuously lock the cursor. The utility does not suppress all system input or inject into the game.

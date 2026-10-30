@@ -2,6 +2,7 @@
 
 ## 0.1.7 — capture input focus
 
+- Public Windows release: the project owner confirmed successful live use in Nivalis Nights, including the camera/aim fix.
 - Address camera/aim movement while selecting or dragging a snip, reported in Nivalis Nights: take the screenshot first, then temporarily give the selection overlay focus.
 - Keep the drag preview passive and restore the optional mouse position before returning focus to the game.
 - Stop capture if the overlay cannot take or retain focus; an intentional switch to another app does not trigger focus or cursor return.
