@@ -118,11 +118,12 @@ internal static class NativeMethods
 
     internal static bool IsDown(int virtualKey) => (GetAsyncKeyState(virtualKey) & 0x8000) != 0;
 
-    internal static void MakePassive(nint hwnd, bool clickThrough)
+    internal static void ConfigureOverlay(nint hwnd, bool clickThrough)
     {
         long style = GetWindowLongPtr(hwnd, GwlExStyle).ToInt64();
-        style |= WsExNoActivate | WsExToolWindow;
-        if (clickThrough) style |= WsExTransparent;
+        style |= WsExToolWindow;
+        if (clickThrough) style |= WsExNoActivate | WsExTransparent;
+        else style &= ~(WsExNoActivate | WsExTransparent);
         SetWindowLongPtr(hwnd, GwlExStyle, new nint(style));
         // WindowFromPoint explicitly skips disabled windows; the host's drop hit-test sees the board.
         if (clickThrough) EnableWindow(hwnd, false);

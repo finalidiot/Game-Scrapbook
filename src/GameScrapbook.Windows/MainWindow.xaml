@@ -30,7 +30,7 @@
             </Canvas>
           </Border>
           <StackPanel>
-            <TextBlock FontSize="22" FontWeight="SemiBold"><Run Text="Game Scrapbook" /><Run Text="  v0.1.6" FontSize="13" Foreground="{DynamicResource MutedBrush}" /></TextBlock>
+            <TextBlock FontSize="22" FontWeight="SemiBold"><Run Text="Game Scrapbook" /><Run Text="  v0.1.7" FontSize="13" Foreground="{DynamicResource MutedBrush}" /></TextBlock>
             <TextBlock Text="Keep your game notes in view." Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0" />
           </StackPanel>
         </StackPanel>

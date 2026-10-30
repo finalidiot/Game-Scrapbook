@@ -1,12 +1,13 @@
 # Game Scrapbook — Windows playtest
 
 This checklist verifies the real Windows interaction. A successful build and the
-core data checks do not establish that a game keeps running during capture or
-that Windows returns focus afterward. Those behaviours need this playtest.
+core data checks do not establish that a game stops reading mouse movement during
+capture or that Windows returns focus afterward. Those behaviours need this playtest.
+The overlay temporarily takes focus; a game may pause while unfocused according to its settings.
 
 ## First setup
 
-1. Close the previous Game Scrapbook window. Extract the complete portable package and launch `GameScrapbook.exe`. Confirm **v0.1.5** and a **Snip** button at the top.
+1. Close the previous Game Scrapbook window. Extract the complete portable package and launch `GameScrapbook.exe`. Confirm **v0.1.7** and a **Snip** button at the top.
 2. Put its board window on the second monitor. Leave **Always on top** off for
    the first test. Keep **Return cursor** enabled.
 3. Open an ordinary desktop application on the game monitor. Start here, then
@@ -30,11 +31,26 @@ The shortcut state should remain visible after any board autosave. If capture fa
    clicking it and that the pointer returns to its starting position.
 6. Add two more snips at different positions. The previous ones should remain.
 
-Repeat in the game. Check whether the game continues to animate while the
-selection is visible, whether dragging causes unintended game actions, and
-whether controls resume after the drop. Record the game and its display mode
-if any of these checks fail. Do not treat a successful desktop test as evidence
+Repeat in the game. Check that selecting and dragging do not turn the camera,
+move the aim or cause unintended game actions, and that controls resume after
+the drop. The game may pause while it is unfocused. Record the game and its
+display mode if any checks fail. A successful desktop test does not establish
 that the game test passed.
+
+## Camera and focus regression check (v0.1.7)
+
+Nivalis Nights was reported to turn the camera/aim while carrying a snip in v0.1.6. Repeat these checks in that game, and record the result; this checklist is not a claim that it has already passed.
+
+1. With **Return mouse after snipping** enabled, aim at a recognisable fixed point. Start a snip with Ctrl+Alt+S. Confirm the screenshot shows the intended scene before the overlay takes focus.
+2. Move the mouse widely while selecting a rectangle, then while carrying the cut-out to the second monitor. Confirm the camera/aim stays at the same point and no game click action occurs. If the game pauses when unfocused, record that behaviour rather than treating it as a capture failure.
+3. Drop on the board. Confirm exactly one snip is saved, focus returns to the original game, and there is no camera jump when the mouse is returned. Repeat cancellation with Escape and right-click and check the same return behaviour.
+4. Drop outside the board. Confirm no snip is saved, the selected cut-out remains available, and moving during the retry still does not move the game camera. Finish with a valid drop.
+5. Disable **Return mouse after snipping**. Repeat a successful drop and cancellation; the pointer should remain where it was released while game focus returns.
+6. While selecting, ready to drag, and dragging, intentionally Alt+Tab to another application. Capture should cancel before placement. The selected application must keep focus and the pointer must not jump back. Repeat by intentionally reactivating the game during capture; the unfinished snip must not be placed.
+7. If Windows refuses to activate the overlay, confirm capture ends with a readable error rather than proceeding while the game stays active. Start another capture afterward to check cleanup.
+8. Repeat using **Snip** and its countdown, with the board minimised, and at your usual monitor scaling. Check pointer freedom across monitors and that any game cursor confinement resumes only on return.
+
+Games that intentionally receive background mouse/raw input can behave differently. Record that case separately; the utility does not use a global input blocker or game-process injection.
 
 ## Edit the board
 

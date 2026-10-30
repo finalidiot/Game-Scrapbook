@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "assertions": 20,
+  "testedAssemblySha256": "c710b5616ba127a070e2343aabfc12dc1d7d37f513d90f0a2bbcc656944088af",
+  "method": "Actual compiled OverlayWindow constructor and SourceInitialized native ConfigureOverlay invoked through EnsureHandle. No Show, Activate, selection.TakeInputFocus, cursor movement, game interaction or user data access.",
+  "foregroundUnchanged": true,
+  "foregroundWasAvailable": false,
+  "boundary": "Native hidden-HWND style and enable-state verification only; active foreground acquisition and live game behavior remain untested.",
+  "overlays": [
+    {
+      "role": "selection",
+      "hidden": true,
+      "noActivate": false,
+      "transparent": false,
+      "toolWindow": true,
+      "nativeEnabled": true,
+      "managedEnabled": true,
+      "focusable": true,
+      "showActivated": false,
+      "ghostRejectedFocus": null
+    },
+    {
+      "role": "drag ghost",
+      "hidden": true,
+      "noActivate": true,
+      "transparent": true,
+      "toolWindow": true,
+      "nativeEnabled": false,
+      "managedEnabled": false,
+      "focusable": false,
+      "showActivated": false,
+      "ghostRejectedFocus": true
+    }
+  ]
+}

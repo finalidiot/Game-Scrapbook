@@ -13,7 +13,7 @@ namespace GameScrapbook.Windows.Capture;
 public sealed record CaptureDropTarget(Point BoardPosition, double DisplayScale = 1.0);
 
 /// <summary>
-/// Captures once, selects a crop, and carries it to the board without an activating OLE drag.
+/// Captures once, owns input while selecting/carrying a crop, then returns to the source.
 /// All coordinates inside the coordinator are physical display pixels; only findDropTarget converts them.
 /// </summary>
 public sealed class CaptureCoordinator : IDisposable
@@ -28,9 +28,9 @@ public sealed class CaptureCoordinator : IDisposable
     private readonly Action<string> _status;
     private readonly DispatcherTimer _timer;
     private Stage _stage;
-    private PassiveWindow? _selectionWindow;
+    private OverlayWindow? _selectionWindow;
     private SelectionSurface? _selectionSurface;
-    private PassiveWindow? _ghost;
+    private OverlayWindow? _ghost;
     private DragSurface? _ghostSurface;
     private BitmapSource? _snapshot;
     private BitmapSource? _snip;
@@ -145,6 +145,11 @@ public sealed class CaptureCoordinator : IDisposable
             _sourceProcess = 0;
             if (_sourceWindow != 0) NativeMethods.GetWindowThreadProcessId(_sourceWindow, out _sourceProcess);
             _monitor = NativeMethods.MonitorBoundsAt(_originalCursor);
+            // Games often release their cursor clip on deactivation. Remember it
+            // before moving focus, then release any remaining clip after acquiring input.
+            _fullDesktop = NativeMethods.VirtualDesktopBounds();
+            _releasedClip = NativeMethods.GetClipCursor(out _originalClip)
+                && !_originalClip.SameAs(_fullDesktop);
             Diagnostic($"Capture screen selected from pointer: {_monitor.Left},{_monitor.Top} {_monitor.Width}x{_monitor.Height}; externalFocusTarget={_sourceWindow != 0}.");
             _snapshot = ScreenCapture.Snapshot(_monitor); // Never capture our own tint/ghost.
             Diagnostic($"Screen snapshot acquired: {_snapshot.PixelWidth}x{_snapshot.PixelHeight}.");
@@ -156,14 +161,15 @@ public sealed class CaptureCoordinator : IDisposable
             }
             _selection = Rect.Empty;
             _selectionSurface = new SelectionSurface(_snapshot);
-            _selectionWindow = new PassiveWindow(_selectionSurface, false);
+            _selectionWindow = new OverlayWindow(_selectionSurface, false);
             _selectionWindow.Present(_monitor.Left, _monitor.Top, _monitor.Width, _monitor.Height);
             Diagnostic("Selection overlay presented: " + _selectionWindow.DescribeGeometry() + ".");
-
-            _fullDesktop = NativeMethods.VirtualDesktopBounds();
-            _releasedClip = NativeMethods.GetClipCursor(out _originalClip)
-                && !_originalClip.SameAs(_fullDesktop)
-                && NativeMethods.ClipCursor(0);
+            if (!_selectionWindow.TakeInputFocus())
+                throw new InvalidOperationException("The snipping overlay could not take focus. Select Game Scrapbook and try again; capture was cancelled to avoid moving your game.");
+            Diagnostic("Selection overlay owns input focus; the source window is inactive.");
+            if (NativeMethods.GetClipCursor(out var currentClip) && !currentClip.SameAs(_fullDesktop)
+                && !NativeMethods.ClipCursor(0))
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "The mouse could not be released for snipping.");
 
             bool swapped = NativeMethods.GetSystemMetrics(23) != 0; // Respect left-handed mouse settings.
             _primaryKey = swapped ? 0x02 : 0x01;
@@ -172,8 +178,8 @@ public sealed class CaptureCoordinator : IDisposable
             _previousSecondary = NativeMethods.IsDown(_secondaryKey);
             _previousEscape = NativeMethods.IsDown(0x1B);
             _stage = Stage.AwaitSelection;
-            // Normal keyboard messages must not send Escape straight into a focused game's pause menu.
-            // A raw-input game may still observe the physical key, which remains a compatibility limit.
+            // Keep Escape available across the selection and drag. Games that
+            // explicitly read background raw input remain a compatibility limit.
             _escapeRegistered = NativeMethods.RegisterHotKey(_ownerHandle, CancelHotkeyId, NativeMethods.ModNoRepeat, 0x1B);
             if (!_escapeRegistered) Diagnostic("Capture Escape hotkey unavailable; using session-only polling fallback.");
             _timer.Start();
@@ -182,10 +188,8 @@ public sealed class CaptureCoordinator : IDisposable
         }
         catch (Exception ex)
         {
-            // Showing an overlay should never activate it, but recover the original source if
-            // a partially created window fails while being displayed or positioned.
-            bool overlayStarted = _selectionWindow is not null;
-            Finish(overlayStarted, overlayStarted);
+            // Finish restores only while our selection overlay still owns focus.
+            Finish(true, true);
             ReportError("Capture could not start: " + ex.Message);
         }
     }
@@ -223,14 +227,13 @@ public sealed class CaptureCoordinator : IDisposable
         _insideTick = true;
         try
         {
-            var foreground = NativeMethods.GetForegroundWindow();
-            NativeMethods.GetWindowThreadProcessId(foreground, out uint foregroundProcess);
-            if (foreground != 0 && foreground != _sourceWindow && foreground != _foregroundAtStart && foregroundProcess != (uint)Environment.ProcessId)
+            if (!OwnsInputFocus())
             {
-                // Respect an intentional Alt+Tab or application switch: never steal focus back after it.
+                // Stop before reading a gesture if the game or any other window
+                // becomes active. Never keep dragging while the game owns input.
                 Finish(false, false);
-                Diagnostic("Capture cancelled after an external application switch.");
-                Notify("Snip cancelled because you switched windows.");
+                Diagnostic("Capture cancelled because the selection overlay lost input focus.");
+                Notify("Snip cancelled because another window became active.");
                 return;
             }
 
@@ -318,7 +321,7 @@ public sealed class CaptureCoordinator : IDisposable
     private void StartDrag(Point cursor)
     {
         _ghostSurface = new DragSurface(_snip!);
-        _ghost = new PassiveWindow(_ghostSurface, true);
+        _ghost = new OverlayWindow(_ghostSurface, true);
         var size = PreviewSize(1);
         _ghost.Present((int)cursor.X, (int)cursor.Y, size.Width, size.Height);
         _selectionSurface!.SetSelection(_selection, true, true);
@@ -391,40 +394,42 @@ public sealed class CaptureCoordinator : IDisposable
     private bool Finish(bool restoreFocus, bool restoreCursor)
     {
         bool hadSession = IsCapturing;
+        bool mayReturn = restoreFocus && OwnsInputFocus();
         _timer.Stop();
         if (_escapeRegistered) NativeMethods.UnregisterHotKey(_ownerHandle, CancelHotkeyId);
         _escapeRegistered = false;
         _stage = Stage.None;
+        // Reposition the pointer while the game is still inactive. Warping after
+        // returning focus can move a game's camera even though dragging has ended.
+        if (mayReturn && restoreCursor && ReturnCursor && (_sourceWindow == 0 || TargetStillExists()))
+            NativeMethods.SetPhysicalCursorPos((int)_originalCursor.X, (int)_originalCursor.Y);
         CloseGhost();
+        // Make one ordinary return request while we still own focus, before
+        // closing the overlay can make Windows activate an unrelated window.
+        if (mayReturn && OwnsInputFocus())
+        {
+            if (TargetStillExists()) NativeMethods.SetForegroundWindow(_sourceWindow);
+            else if (_sourceWindow == 0 && _foregroundAtStart == _ownerHandle)
+                NativeMethods.SetForegroundWindow(_ownerHandle);
+        }
         try { _selectionWindow?.Close(); } catch (InvalidOperationException) { }
         _selectionWindow = null;
         _selectionSurface = null;
         _snapshot = null;
         _snip = null;
         _selection = Rect.Empty;
-        bool restored = false;
-        if (restoreFocus && TargetStillExists())
-        {
-            if (NativeMethods.GetForegroundWindow() != _sourceWindow)
-                NativeMethods.SetForegroundWindow(_sourceWindow); // Exactly one ordinary, user-initiated attempt.
-            restored = NativeMethods.GetForegroundWindow() == _sourceWindow;
-            if (restored && restoreCursor && ReturnCursor)
-                NativeMethods.SetPhysicalCursorPos((int)_originalCursor.X, (int)_originalCursor.Y);
-        }
-        else if (restoreCursor && ReturnCursor && _sourceWindow == 0 &&
-                 (NativeMethods.GetForegroundWindow() == _foregroundAtStart || NativeMethods.GetForegroundWindow() == _ownerHandle))
-        {
-            // Capturing the desktop or our own screen is valid even without an external focus target.
-            NativeMethods.SetPhysicalCursorPos((int)_originalCursor.X, (int)_originalCursor.Y);
-        }
+        bool restored = mayReturn && TargetStillExists() && NativeMethods.GetForegroundWindow() == _sourceWindow;
         // Do not replace a clip rectangle another app installed while we were active, or trap an unrelated app.
-        if (_releasedClip && TargetStillExists() && NativeMethods.GetForegroundWindow() == _sourceWindow
+        if (_releasedClip && restored
             && NativeMethods.GetClipCursor(out var currentClip) && currentClip.SameAs(_fullDesktop))
             NativeMethods.RestoreClipCursor(ref _originalClip);
         _releasedClip = false;
         if (hadSession) NotifyState(false);
         return restored;
     }
+
+    private bool OwnsInputFocus() => _selectionWindow is { Handle: not 0 }
+        && NativeMethods.GetForegroundWindow() == _selectionWindow.Handle;
 
     private bool TargetStillExists()
     {
@@ -467,7 +472,7 @@ public sealed class CaptureCoordinator : IDisposable
     {
         if (_disposed) return;
         _owner.Dispatcher.VerifyAccess();
-        Finish(false, false);
+        Finish(true, true);
         _disposed = true;
         _timer.Tick -= Tick;
         if (_hotkeyId != 0) NativeMethods.UnregisterHotKey(_ownerHandle, _hotkeyId);

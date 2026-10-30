@@ -1,5 +1,12 @@
 # Game Scrapbook changes
 
+## 0.1.7 — capture input focus
+
+- Address camera/aim movement while selecting or dragging a snip, reported in Nivalis Nights: take the screenshot first, then temporarily give the selection overlay focus.
+- Keep the drag preview passive and restore the optional mouse position before returning focus to the game.
+- Stop capture if the overlay cannot take or retain focus; an intentional switch to another app does not trigger focus or cursor return.
+- Document games pausing on focus loss and background-input limitations. Retain the centered X and existing board data format.
+
 ## 0.1.6 — centered delete icon and open-source release
 
 - Draw a centered X inside each snip's delete button, avoiding font baseline and spacing differences.

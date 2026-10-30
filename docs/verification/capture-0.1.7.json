@@ -1,0 +1,97 @@
+{
+  "status": "passed",
+  "passed": 22,
+  "failed": 0,
+  "boundary": "Actual linked CaptureCoordinator source; simulated platform/window/snapshot operations. Unshown WPF owner and dispatcher only. No native HWND, real input, user board, game capture, or live Nivalis Nights test.",
+  "sourceSha256": "4921d343f325038edb6e55a27875289a2ac66f96d5bb17e96142f57bba295e1a",
+  "cases": [
+    {
+      "name": "capture snapshots and remembers game clipping before taking focus",
+      "passed": true
+    },
+    {
+      "name": "denied activation aborts without starting gestures or returning cursor",
+      "passed": true
+    },
+    {
+      "name": "successful selection and drag save once then return cursor before focus",
+      "passed": true
+    },
+    {
+      "name": "original game regaining focus cancels before a pending drop",
+      "passed": true
+    },
+    {
+      "name": "Alt\u002BTab to another app cancels without moving cursor or stealing focus",
+      "passed": true
+    },
+    {
+      "name": "switching to scrapbook itself cancels without restoring game",
+      "passed": true
+    },
+    {
+      "name": "unknown foreground cancels without returning cursor",
+      "passed": true
+    },
+    {
+      "name": "outside-board drop retains the selected snip and overlay focus for retry",
+      "passed": true
+    },
+    {
+      "name": "failed save retains selected snip and focus then a retry succeeds",
+      "passed": true
+    },
+    {
+      "name": "ReturnCursor off leaves cursor at drop while returning game focus",
+      "passed": true
+    },
+    {
+      "name": "right-click cancellation returns cursor before closing overlay",
+      "passed": true
+    },
+    {
+      "name": "Escape hotkey cancels without passing a normal key to the game",
+      "passed": true
+    },
+    {
+      "name": "Escape polling fallback still cancels when its registration is unavailable",
+      "passed": true
+    },
+    {
+      "name": "closed game target is never focused and its old cursor clip is not restored",
+      "passed": true
+    },
+    {
+      "name": "reused source HWND from a different process is not restored",
+      "passed": true
+    },
+    {
+      "name": "focus return denial makes one attempt and does not confine another app",
+      "passed": true
+    },
+    {
+      "name": "another app\u0027s replacement cursor clip is preserved",
+      "passed": true
+    },
+    {
+      "name": "left-handed mouse mapping still selects and drops with the logical primary",
+      "passed": true
+    },
+    {
+      "name": "Dispose during capture returns cursor before closing and restores focus",
+      "passed": true
+    },
+    {
+      "name": "Dispose after an external switch does not move cursor or steal focus",
+      "passed": true
+    },
+    {
+      "name": "host capture gate prevents snapshot and focus changes",
+      "passed": true
+    },
+    {
+      "name": "capture started in scrapbook returns to scrapbook without an external game target",
+      "passed": true
+    }
+  ]
+}

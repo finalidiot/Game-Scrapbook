@@ -13,7 +13,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        WriteCaptureDiagnostic("App starting, version 0.1.6.");
+        WriteCaptureDiagnostic("App starting, version 0.1.7.");
         _instance = new Mutex(true, @"Local\GameScrapbook-0.1", out _ownsMutex);
         if (!_ownsMutex)
         {

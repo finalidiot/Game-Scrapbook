@@ -8,8 +8,8 @@ using GameScrapbook.Windows.Interop;
 
 namespace GameScrapbook.Windows.Capture;
 
-/// <summary>A real desktop window which neither activates on show nor on a pointer click.</summary>
-internal sealed class PassiveWindow : Window
+/// <summary>A selection window that can own input, or a permanently passive drag preview.</summary>
+internal sealed class OverlayWindow : Window
 {
     private readonly bool _clickThrough;
     private readonly UIElement _content;
@@ -17,7 +17,7 @@ internal sealed class PassiveWindow : Window
     private NativeMethods.NativeRect _requestedBounds;
     internal nint Handle { get; private set; }
 
-    internal PassiveWindow(UIElement content, bool clickThrough)
+    internal OverlayWindow(UIElement content, bool clickThrough)
     {
         _clickThrough = clickThrough;
         _content = content;
@@ -28,7 +28,7 @@ internal sealed class PassiveWindow : Window
         ShowInTaskbar = false;
         ShowActivated = false;
         Topmost = true;
-        Focusable = false;
+        Focusable = !clickThrough;
         IsEnabled = !clickThrough;
         WindowStartupLocation = WindowStartupLocation.Manual;
         SizeToContent = SizeToContent.Manual;
@@ -40,7 +40,7 @@ internal sealed class PassiveWindow : Window
         SourceInitialized += (_, _) =>
         {
             Handle = new WindowInteropHelper(this).Handle;
-            NativeMethods.MakePassive(Handle, _clickThrough);
+            NativeMethods.ConfigureOverlay(Handle, _clickThrough);
             _source = HwndSource.FromHwnd(Handle);
             _source?.AddHook(WindowProc);
         };
@@ -57,7 +57,8 @@ internal sealed class PassiveWindow : Window
         // particular, never render the first selection frame in a 1x1 window.
         Width = width;
         Height = height;
-        // EnsureHandle applies WS_EX_NOACTIVATE and hooks BEFORE Show can receive input.
+        // Configure native styles before showing. Selection takes focus explicitly
+        // only after its physical bounds and layout have been validated.
         _ = new WindowInteropHelper(this).EnsureHandle();
         Show();
         MovePhysical(x, y, width, height);
@@ -65,6 +66,15 @@ internal sealed class PassiveWindow : Window
         ValidatePresented();
         Opacity = 1;
         _content.InvalidateVisual();
+    }
+
+    internal bool TakeInputFocus()
+    {
+        if (_clickThrough || Handle == 0) return false;
+        if (NativeMethods.GetForegroundWindow() != Handle) Activate();
+        if (NativeMethods.GetForegroundWindow() != Handle) return false;
+        _content.Focus();
+        return NativeMethods.GetForegroundWindow() == Handle;
     }
 
     internal void MovePhysical(int x, int y, int width, int height)
@@ -119,7 +129,7 @@ internal sealed class PassiveWindow : Window
 
     private nint WindowProc(nint hwnd, int message, nint wParam, nint lParam, ref bool handled)
     {
-        if (message == NativeMethods.WmMouseActivate)
+        if (_clickThrough && message == NativeMethods.WmMouseActivate)
         {
             handled = true;
             return NativeMethods.MaNoActivate;
@@ -153,7 +163,7 @@ internal sealed class SelectionSurface : FrameworkElement
         _hintBackground = (Brush)Application.Current.FindResource("PanelBrush");
         _hintForeground = (Brush)Application.Current.FindResource("TextBrush");
         _hintBorder = (Brush)Application.Current.FindResource("BorderBrush");
-        Focusable = false;
+        Focusable = true;
         Cursor = Cursors.Cross;
         SnapsToDevicePixels = true;
         RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.HighQuality);

@@ -5,7 +5,7 @@
 The owner wants a **single application window on a second monitor**, used as a scrapbook containing multiple separate captures. The capture flow is deliberately manual:
 
 1. Start with an easy shortcut or the visible Snip button and its three-second countdown.
-2. Display a darkened view of the monitor containing the mouse pointer when capture starts.
+2. Capture the monitor containing the mouse pointer, then give the darkened selection overlay focus for the snipping gesture.
 3. Select a rectangular area.
 4. Grab the resulting cut-out and drag it into the scrapbook.
 5. Drop it at the chosen position.
@@ -15,16 +15,17 @@ For existing snips: click one, press Delete, and it disappears immediately. Ctrl
 
 Do not replace the manual drag/drop operation with automatically appending captures, a set of unrelated floating windows, or a browser screenshot demo.
 
-## First build
+## Current implementation
 
 - C# / .NET 10 / WPF; native desktop window and Windows APIs.
 - Physical screen coordinates inside the capture coordinator; board-space conversion occurs at the visible canvas boundary.
-- Capture once before displaying tint. The selection image is frozen; the game process is not explicitly paused.
+- Capture once before displaying tint or taking focus. The selection image is frozen; the utility does not explicitly pause the game process. Games may pause themselves when the overlay takes focus.
 - Capture screen selection is separate from focus return: use the existing external foreground window, or the external window under the pointer when the scrapbook is selected. A capture is still allowed when no external focus target is available.
 - Shortcut registration status and capture errors have persistent UI indicators. The button provides an entry point independent of shortcut delivery.
-- Non-activating overlay; no OLE drag that would require activating the board.
+- Temporarily foreground the selection overlay while selecting, dragging and retrying drops. Keep the ghost preview non-activating and click-through; no OLE drag requires activating the board.
+- Refuse to continue capture without overlay focus. Stop when that focus is lost, including intentional game reactivation, before placing an unfinished snip.
 - A 12 ms mouse-state timer runs only during an active capture.
-- At most one ordinary focus-restoration request, verified against the original HWND and process. An intentional external app switch cancels capture without focus stealing.
+- Return the optional mouse position before releasing overlay focus, then make at most one ordinary focus-restoration request, verified against the original HWND and process. An intentional external app switch cancels capture without focus stealing or a pointer jump.
 - Bitmap PNG persisted first, then an atomic layout save. A failed save leaves the capture available to retry.
 - Captured images remain immutable; deletion changes layout metadata and enables undo.
 - The build contains no AI, network requests, accounts, background recording, telemetry, injection or automatic updates.
@@ -35,4 +36,6 @@ OCR/search, text notes, multiple game boards, automatic game detection, cloud sy
 
 ## Verification boundary
 
-Compile and core durability checks are possible in the current Linux environment. Native Windows rendering, focus behaviour, mixed-DPI cursor interaction, and real-game compatibility require the included Windows playtest. Passing compilation is never described as passing that playtest.
+Record current build, core durability and focused Windows checks in the versioned verification report. Native mouse input, focus behaviour, mixed-DPI cursor interaction and real-game compatibility still require the included Windows playtest. Passing compilation or an offscreen check is never described as passing that playtest.
+
+The v0.1.7 focus change addresses camera/aim movement reported in Nivalis Nights. It does not establish compatibility with games that intentionally read background input or continuously lock the cursor. The utility does not suppress all system input or inject into the game.

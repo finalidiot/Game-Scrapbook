@@ -796,6 +796,7 @@ public partial class MainWindow : Window
                 "3. Drag a rectangle around the information you want. Release.\n" +
                 "4. Grab the selected cut-out and drag it onto this board.\n" +
                 "5. Release to place it and return focus to your game.\n\n" +
+                "Snipping temporarily takes focus so the game does not normally read the mouse drag. Some games pause while unfocused.\n\n" +
                 "Click a saved snip to select it. Drag to move. Use its bottom-right grip to resize. Click its top-right × to delete it, or select it and press Delete. Ctrl+Z restores it; Ctrl+Y redoes. Ctrl+wheel zooms the board.\n\n" +
                 "Escape or right-click cancels a capture. Dropping outside the board lets you try again.\n\n" +
                 "Keep the app running for the shortcut to work. Borderless/windowed games are the first target. Games that lock the cursor or use raw mouse input may need their own cursor/menu setting; fullscreen capture and focus behaviour vary.\n\n" +

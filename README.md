@@ -2,7 +2,7 @@
 
 Keep recipes, quests, maps and other game information in view on your second monitor. Game Scrapbook is a small, portable Windows utility: capture part of your game screen, drag the cut-out onto a persistent board, then return to playing.
 
-**Windows x64 · Free and open source · MIT license · v0.1.6 preview**
+**Windows x64 · Free and open source · MIT license · v0.1.7 preview**
 
 [Download the latest Windows release](https://github.com/finalidiot/Game-Scrapbook/releases/latest) · [Report a problem](https://github.com/finalidiot/Game-Scrapbook/issues)
 
@@ -10,7 +10,7 @@ Keep recipes, quests, maps and other game information in view on your second mon
 
 - **Snip the screen under your mouse.** Use a configurable global shortcut or a Snip button with a three-second countdown.
 - **Place each snip yourself.** Select a rectangle, then drag the cut-out onto the board. Arrange and proportionally resize saved snips, and zoom the board from 25% to 300%.
-- **Get back to your game.** After placing a new snip, the app attempts to restore the original game window's focus. It can also return the mouse to its starting position.
+- **Keep snipping input out of your game.** After taking the screenshot, the selection overlay temporarily takes focus while you select and drag. When you finish or cancel, the app attempts to return to the original game window. It can also return the mouse to its starting position before restoring game focus.
 - **Archive information for later.** Clear individual snips from the board without losing them. Browse thumbnails, view an image at Fit or 100%, and restore it to its saved position and size.
 - **Edit with undo and redo.** Delete with the centered X on a snip, the toolbar, or the Delete key. Undo and redo cover snip changes, including archiving and restoring.
 - **Keep your setup.** Images, layout, archives, window placement, zoom and settings save locally. Choose background, text and accent colours, and optionally keep the scrapbook on top.
@@ -24,7 +24,7 @@ The app has no account, upload, cloud sync or network feature. Your captures sta
 ## First run
 
 1. Download the Windows x64 ZIP from [Releases](https://github.com/finalidiot/Game-Scrapbook/releases). Close any older running copy of Game Scrapbook, then extract the complete ZIP to a folder.
-2. Open `GameScrapbook.exe`. The header should show **v0.1.6**. The portable release includes its .NET runtime; you do not need to install one separately.
+2. Open `GameScrapbook.exe`. The header should show **v0.1.7**. The portable release includes its .NET runtime; you do not need to install one separately.
 3. Put the scrapbook window on your second screen. A new setup attempts to start there automatically. Begin with your game in **windowed or borderless mode with SDR output**.
 4. Select your game, put the mouse on the screen you want to capture, and press **Ctrl+Alt+S**. Alternatively, click **Snip**, then move the mouse to that screen during the three-second countdown.
 5. **Drag a rectangle** around the information you want, then release.
@@ -32,7 +32,9 @@ The app has no account, upload, cloud sync or network feature. Your captures sta
 
 There are two drags: the first selects an area; the second carries that cut-out to the board. Dropping outside the board leaves the cut-out available to try again. The captured monitor is chosen from the pointer position when capture starts.
 
-Keep the app running for its global shortcut to work. Closing its main window exits the app. Existing v0.1.5 boards, archives and settings use the same data folder when upgrading.
+The screenshot is taken before focus moves away from the game. The snipping overlay then takes focus for selection and dragging so foreground-only game input does not keep turning the camera. A game may pause when it loses focus, according to its own settings. If Windows will not give the overlay focus, capture stops instead of leaving the game active during the drag.
+
+Keep the app running for its global shortcut to work. Closing its main window exits the app. Existing boards, archives and settings use the same data folder when upgrading.
 
 ## Controls and shortcuts
 
@@ -85,14 +87,14 @@ Capture diagnostics do not record screen contents or window titles. Before shari
 
 - Windows x64 is required to run the WPF application. Windows 10/11 with windowed or borderless SDR games is the intended target; actual behaviour depends on the game and display setup.
 - Capture uses Windows GDI desktop capture. Exclusive fullscreen, HDR colour accuracy and protected capture surfaces are not verified and may produce incorrect or blank captures.
-- Games that lock the cursor or use raw mouse input may need their own menu or cursor setting. A game may still react to physical input or pause according to its own rules.
-- Windows may refuse a focus-return request. The app reports that outcome rather than repeatedly forcing focus. Switching intentionally to another external application during capture cancels the capture without taking focus back.
+- The snipping overlay temporarily takes focus, which can pause a game according to its unfocused-window settings. Games that read mouse input in the background may still react; games that lock the cursor may need their own menu or cursor setting. This is not a global input blocker.
+- Windows may refuse a focus-transfer or focus-return request. Capture stops if the overlay cannot own input; the app reports a failed return instead of repeatedly forcing focus. Losing overlay focus during capture cancels the operation. An intentional Alt+Tab to another app leaves that app active without moving the pointer back.
 - This is an **unsigned preview**. Windows may show an unknown-publisher or reputation notice. First launch can take longer while .NET extracts bundled native files.
 - There is one local board. Undo history is session-only; there is no automatic unused-image cleanup.
 
 If the shortcut seems inactive, try **Snip** and read the message above the board. **Shortcut unavailable** usually means another app has registered it; choose a different combination in Settings. Capture errors and the diagnostics above help distinguish shortcut, screenshot and overlay failures.
 
-See [the Windows playtest checklist](docs/WINDOWS_PLAYTEST.md) for manual capture, monitor and focus checks. Build and test evidence for this release belongs in [the v0.1.6 verification report](docs/VERIFICATION_0.1.6.md); older reports in `docs/` describe their respective historical versions.
+See [the Windows playtest checklist](docs/WINDOWS_PLAYTEST.md) for manual capture, monitor and focus checks. Build and test evidence for this release belongs in [the v0.1.7 verification report](docs/VERIFICATION_0.1.7.md); older reports in `docs/` describe their respective historical versions.
 
 ## Build from source
 
@@ -102,13 +104,21 @@ Install the **.NET 10 SDK** and PowerShell, clone this repository, and open a te
 .\scripts\build.ps1
 ```
 
-This command runs the focused core checks once, then publishes a self-contained, single-file Windows x64 executable to `artifacts/windows-x64/GameScrapbook.exe`. It downloads Microsoft's targeting/runtime packages on the first restore. The application has no third-party NuGet package dependencies.
+This command runs the core checks and, on Windows, the simulated capture-lifecycle checks once, then publishes a self-contained, single-file Windows x64 executable to `artifacts/windows-x64/GameScrapbook.exe`. It downloads Microsoft's targeting/runtime packages on the first restore. The application has no third-party NuGet package dependencies.
 
 For a checks-only run:
 
 ```powershell
 dotnet run --project tests/GameScrapbook.Core.Checks -c Release
 ```
+
+On Windows, run the [capture-lifecycle checks](tests/GameScrapbook.Capture.Checks/README.md) separately with:
+
+```powershell
+dotnet run --project tests/GameScrapbook.Capture.Checks -c Release
+```
+
+These simulate focus, cursor and overlay operations around the real capture coordinator; they do not replace a live game playtest.
 
 For interactive development on Windows:
 
